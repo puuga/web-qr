@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web QR by Siwawes Wongcharoen</title>
+</head>
+<body onload="init()">
+    <div class="camera-box">  
+        <video id="camera" width="100" height="100" autoplay></video>
+        <canvas id="canvas"></canvas>
+        <button onclick="capture()">Capture</button>
+    </div>
+
+    <div id="result"></div>
+
+    <script>
+        function init () {
+            const constraints = (window.constraints = {
+                audio: false,
+                video: true
+            });
+
+            navigator.mediaDevices
+                .getUserMedia(constraints)
+                .then(stream => {
+                    const cameraElement = document.getElementById("camera");
+                    cameraElement.srcObject = stream;
+
+                    var videoTracks = stream.getVideoTracks();
+                    console.log('Got stream with constraints:', constraints);
+                    console.log('videoTracks: ' + videoTracks);
+                    console.log('Using video device: ' + videoTracks[0].label);
+                })
+                .catch(error => {
+                    console.log(error);
+                    alert("May the browser didn't support or there is some errors.");
+                }
+            );
+        }
+
+        function capture () {
+            var canvas = document.getElementById('canvas');     
+            var video = document.getElementById('camera');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, video.videoWidth, video.videoHeight);  
+            
+            // create new detector
+            var barcodeDetector = new BarcodeDetector({formats: ['qr_code']})
+                barcodeDetector
+                    .detect(canvas)
+                    .then(barcodes => {
+                        console.log('barcodes', barcodes)
+                        barcodes.forEach(barcode => {
+                            console.log('barcode', barcode)
+                            console.log('barcode.rawValue', barcode.rawValue)
+                            var result = document.getElementById('result');     
+                            result.innerHTML = barcode.rawValue
+
+                        });
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    })
+        }
+    </script>
+</body>
+</html>
